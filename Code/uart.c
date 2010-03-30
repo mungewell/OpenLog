@@ -68,11 +68,25 @@
 void uart_init(uint8_t uart_speed)
 {
 	//Assume 16MHz
-	uint16_t new_ubrr = 207; //Default is 9600bps
+	uint16_t new_ubrr = 207;            //Default is 9600bps
+
+    /********************************************
+    * Calculating baud rate - OpenLog is using  *
+    * the Asynchronous Double Speed Mode for    *
+    * the USART. Therefore, the calculation for *
+    * the UBRR (baud rate) is:                  *
+    *      (Fosc/8*BAUD_RATE) - 1               *
+    * Example 9600                              *
+    *       (16MHz/8*9600) - 1 = 208.33333 - 1  *
+    *                          = ~207           *
+    * Close enough for governement work         *
+    *********************************************/ 
 	if(uart_speed == 0) new_ubrr = 832; //2400
 	if(uart_speed == 1) new_ubrr = 207; //9600
-	if(uart_speed == 2) new_ubrr = 34; //57600
-	if(uart_speed == 3) new_ubrr = 16; //115200
+	if(uart_speed == 2) new_ubrr = 104; //19200
+	if(uart_speed == 3) new_ubrr = 52;  //38400
+	if(uart_speed == 4) new_ubrr = 34;  //57600
+	if(uart_speed == 5) new_ubrr = 16;  //115200
 
 	UCSR0A = (1<<U2X0); //Double the UART transfer rate
 	//Slightly more accurate UBRR calculation

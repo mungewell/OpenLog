@@ -390,8 +390,10 @@ struct command_arg
 
 #define BAUD_2400	0
 #define BAUD_9600	1
-#define BAUD_57600	2
-#define BAUD_115200	3
+#define BAUD_19200  2
+#define BAUD_38400  3
+#define BAUD_57600	4
+#define BAUD_115200	5
 
 #define MODE_NEWLOG	0
 #define MODE_SEQLOG 1
@@ -1753,8 +1755,10 @@ void baud_menu(void)
 		
 		uart_puts_p(PSTR("1) Set Baud rate 2400\n"));
 		uart_puts_p(PSTR("2) Set Baud rate 9600\n"));
-		uart_puts_p(PSTR("3) Set Baud rate 57600\n"));
-		uart_puts_p(PSTR("4) Set Baud rate 115200\n"));
+        uart_puts_p(PSTR("3) Set Baud rate 19200\n"));
+		uart_puts_p(PSTR("4) Set Baud rate 38400\n"));
+		uart_puts_p(PSTR("5) Set Baud rate 57600\n"));
+		uart_puts_p(PSTR("6) Set Baud rate 115200\n"));
 
 		//print prompt
 		uart_putc('>');
@@ -1784,7 +1788,25 @@ void baud_menu(void)
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("3")) == 0)
+        if(strcmp_P(command, PSTR("3")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 19200bps...\n"));
+
+			//Set baud rate to 19200
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_19200);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+        if(strcmp_P(command, PSTR("4")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 38400bps...\n"));
+
+			//Set baud rate to 38400
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_38400);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("5")) == 0)
 		{
 			uart_puts_p(PSTR("\nGoing to 57600bps...\n"));
 
@@ -1793,7 +1815,7 @@ void baud_menu(void)
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("4")) == 0)
+		if(strcmp_P(command, PSTR("6")) == 0)
 		{
 			uart_puts_p(PSTR("\nGoing to 115200bps...\n"));
 
