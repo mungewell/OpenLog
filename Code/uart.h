@@ -34,6 +34,19 @@ void uart_puts_p(PGM_P str);
 
 uint8_t uart_getc(void);
 
+typedef enum
+{
+    UART_SPEED_2400,
+    UART_SPEED_4800,
+    UART_SPEED_9600,
+    UART_SPEED_19200,
+    UART_SPEED_38400,
+    UART_SPEED_57600,
+    UART_SPEED_115200,
+    UART_SPEED_MAX_ITEMS
+} UART_SPEED_T;
+
+
 #ifdef __cplusplus
 }
 #endif

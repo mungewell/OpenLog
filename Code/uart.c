@@ -65,10 +65,14 @@
 //#define USE_SLEEP 1
 #define USE_SLEEP 0
 
-void uart_init(uint8_t uart_speed)
+/* This array holds the UBRR values to cooresponding baudrates in the
+   UART_SPEED_T enum. */
+const uint16_t uart_ubrr_table[UART_SPEED_MAX_ITEMS] = {832,416,207,104,52,34,16};
+
+void uart_init(UART_SPEED_T uart_speed)
 {
 	//Assume 16MHz
-	uint16_t new_ubrr = 207;            //Default is 9600bps
+	uint16_t new_ubrr = uart_ubrr_table[UART_SPEED_9600];  //Default is 9600bps
 
     /********************************************
     * Calculating baud rate - OpenLog is using  *
@@ -79,31 +83,31 @@ void uart_init(uint8_t uart_speed)
     * Example 9600                              *
     *       (16MHz/8*9600) - 1 = 208.33333 - 1  *
     *                          = ~207           *
-    * Close enough for governement work         *
-    *********************************************/ 
-	if(uart_speed == 0) new_ubrr = 832; //2400
-	if(uart_speed == 1) new_ubrr = 207; //9600
-	if(uart_speed == 2) new_ubrr = 104; //19200
-	if(uart_speed == 3) new_ubrr = 52;  //38400
-	if(uart_speed == 4) new_ubrr = 34;  //57600
-	if(uart_speed == 5) new_ubrr = 16;  //115200
+    * To add a new baud rate, calculate the     *
+    * ubrr value. Then, add the baud rate to    *
+    * the speed enum and the value to the table *
+    * both located in uart.h                    *
+    *********************************************/
+    
+    /* Bound check value before assigning.
+       If value is valid, assign new ubrr value, if not leave as default */
+    if( uart_speed >= UART_SPEED_2400 && uart_speed <= UART_SPEED_115200 )
+    {
+	    new_ubrr = uart_ubrr_table[uart_speed];
+	}
 
-	UCSR0A = (1<<U2X0); //Double the UART transfer rate
-	//Slightly more accurate UBRR calculation
-	UBRR0L = new_ubrr;
-	UBRR0H = new_ubrr >> 8;
-
-
-    /* set baud rate */
-    //UBRRH = UBRRVAL >> 8;
-    //UBRRL = UBRRVAL & 0xff;
+    /* Doubling the UART transfer rate yields slightly more accurate UBRR 
+       calculation */
+    UCSR0A = (1<<U2X0);
+    
+    /* set baud rate register*/
+    UBRR0L = new_ubrr;
+    UBRR0H = new_ubrr >> 8;
+    
     /* set frame format: 8 bit, no parity, 1 bit */
     //UCSRC = UCSRC_SELECT | (1 << UCSZ1) | (1 << UCSZ0);
     /* enable serial receiver and transmitter */
-	
-	//Some bootloaders set the UART to double speed - make sure it's single speed
-	//UCSR0A = (1<<U2X0); //Double the UART transfer rate
-	//UCSR0A = 0; //Single speed UART
+
 	
 #if !USE_SLEEP
     UCSRB = (1 << RXEN) | (1 << TXEN);
