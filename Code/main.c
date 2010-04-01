@@ -640,12 +640,12 @@ void ioinit(void)
 	}
 
 	//Read what the current UART speed is from EEPROM memory
-	uint8_t uart_speed;
+	UART_SPEED_T uart_speed;
 	uart_speed = EEPROM_read(LOCATION_BAUD_SETTING);
 	if(uart_speed > 5) 
 	{
-		uart_speed = BAUD_9600; //Reset UART to 9600 if there is no speed stored
-		EEPROM_write(LOCATION_BAUD_SETTING, BAUD_9600);
+		uart_speed = UART_SPEED_9600; //Reset UART to 9600 if there is no speed stored
+		EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_9600);
 	}
 
     //Setup uart
@@ -1754,11 +1754,12 @@ void baud_menu(void)
 		uart_puts_p(PSTR("\nBaud Configuration:\n"));
 		
 		uart_puts_p(PSTR("1) Set Baud rate 2400\n"));
-		uart_puts_p(PSTR("2) Set Baud rate 9600\n"));
-        uart_puts_p(PSTR("3) Set Baud rate 19200\n"));
-		uart_puts_p(PSTR("4) Set Baud rate 38400\n"));
-		uart_puts_p(PSTR("5) Set Baud rate 57600\n"));
-		uart_puts_p(PSTR("6) Set Baud rate 115200\n"));
+		uart_puts_p(PSTR("2) Set Baud rate 4800\n"));
+        uart_puts_p(PSTR("3) Set Baud rate 9600\n"));
+        uart_puts_p(PSTR("4) Set Baud rate 19200\n"));
+		uart_puts_p(PSTR("5) Set Baud rate 38400\n"));
+		uart_puts_p(PSTR("6) Set Baud rate 57600\n"));
+		uart_puts_p(PSTR("7) Set Baud rate 115200\n"));
 
 		//print prompt
 		uart_putc('>');
@@ -1775,52 +1776,61 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 2400bps...\n"));
 
 			//Set baud rate to 2400
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_2400);
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_2400);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
 		if(strcmp_P(command, PSTR("2")) == 0)
 		{
-			uart_puts_p(PSTR("\nGoing to 9600bps...\n"));
+			uart_puts_p(PSTR("\nGoing to 4800bps...\n"));
 
-			//Set baud rate to 9600
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_9600);
+			//Set baud rate to 4800
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_4800);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-        if(strcmp_P(command, PSTR("3")) == 0)
+		if(strcmp_P(command, PSTR("3")) == 0)
 		{
-			uart_puts_p(PSTR("\nGoing to 19200bps...\n"));
+			uart_puts_p(PSTR("\nGoing to 9600bps...\n"));
 
-			//Set baud rate to 19200
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_19200);
+			//Set baud rate to 9600
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_9600);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
         if(strcmp_P(command, PSTR("4")) == 0)
 		{
-			uart_puts_p(PSTR("\nGoing to 38400bps...\n"));
+			uart_puts_p(PSTR("\nGoing to 19200bps...\n"));
 
-			//Set baud rate to 38400
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_38400);
+			//Set baud rate to 19200
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_19200);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("5")) == 0)
+        if(strcmp_P(command, PSTR("5")) == 0)
 		{
-			uart_puts_p(PSTR("\nGoing to 57600bps...\n"));
+			uart_puts_p(PSTR("\nGoing to 38400bps...\n"));
 
-			//Set baud rate to 57600
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_57600);
+			//Set baud rate to 38400
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_38400);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
 		if(strcmp_P(command, PSTR("6")) == 0)
 		{
+			uart_puts_p(PSTR("\nGoing to 57600bps...\n"));
+
+			//Set baud rate to 57600
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_57600);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("7")) == 0)
+		{
 			uart_puts_p(PSTR("\nGoing to 115200bps...\n"));
 
 			//Set baud rate to 115200
-			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_115200);
+			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_115200);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
