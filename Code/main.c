@@ -1670,7 +1670,6 @@ void baud_menu(void)
 		uart_puts_p(PSTR("6) Set Baud rate 57600\n"));
 		uart_puts_p(PSTR("7) Set Baud rate 115200\n"));
 		uart_puts_p(PSTR("8) Exit\n"));
->>>>>>> upstream/master:Code/main.c
 
 		//print prompt
 		uart_putc('>');
