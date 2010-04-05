@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2006-2009 by Roland Riegel <feedback@roland-riegel.de>
  *
@@ -17,6 +16,19 @@
 extern "C"
 {
 #endif
+
+// Order to allow compatiability with old configs
+#define BAUD_2400	0
+#define BAUD_9600	1
+#define BAUD_57600	2
+#define BAUD_115200	3
+#define BAUD_4800	4
+#define BAUD_14400	5
+#define BAUD_19200	6
+#define BAUD_28800	7
+#define BAUD_38400	8
+#define BAUD_76800	9
+#define BAUD_NONE	10
 
 void uart_init(uint8_t uart_speed);
 
