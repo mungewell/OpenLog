@@ -8,7 +8,7 @@
 
 /*
     12-3-09
-    Copyright SparkFun Electronics� 2009
+    Copyright SparkFun Electronics© 2009
     Nathan Seidle
     spark at sparkfun.com
     
@@ -531,7 +531,7 @@ void ioinit(void)
 	//Read what the current UART speed is from EEPROM memory
 	uint8_t uart_speed;
 	uart_speed = EEPROM_read(LOCATION_BAUD_SETTING);
-	if(uart_speed > BAUD_MAX) 
+	if(uart_speed >= BAUD_NONE) 
 	{
 		uart_speed = BAUD_9600; //Reset UART to 9600 if there is no speed stored
 		EEPROM_write(LOCATION_BAUD_SETTING, BAUD_9600);
@@ -1646,17 +1646,27 @@ void baud_menu(void)
 	
 		uart_puts_p(PSTR("Current: "));
 		if(uart_speed == BAUD_2400) uart_puts_p(PSTR("24"));
+		if(uart_speed == BAUD_4800) uart_puts_p(PSTR("48"));
 		if(uart_speed == BAUD_9600) uart_puts_p(PSTR("96"));
+		if(uart_speed == BAUD_14400) uart_puts_p(PSTR("144"));
+		if(uart_speed == BAUD_28800) uart_puts_p(PSTR("288"));
+		if(uart_speed == BAUD_38400) uart_puts_p(PSTR("384"));
 		if(uart_speed == BAUD_57600) uart_puts_p(PSTR("576"));
+		if(uart_speed == BAUD_76800) uart_puts_p(PSTR("768"));
 		if(uart_speed == BAUD_115200) uart_puts_p(PSTR("1152"));
 		uart_puts_p(PSTR("00 bps\n"));
 	
 		uart_puts_p(PSTR("Change to:\n"));
 		uart_puts_p(PSTR("1) 2400 bps\n"));
-		uart_puts_p(PSTR("2) 9600 bps\n"));
-		uart_puts_p(PSTR("3) 57600 bps\n"));
-		uart_puts_p(PSTR("4) 115200 bps\n"));
-		uart_puts_p(PSTR("5) Exit\n"));
+		uart_puts_p(PSTR("2) 4800 bps\n"));
+		uart_puts_p(PSTR("3) 9600 bps\n"));
+		uart_puts_p(PSTR("4) 14400 bps\n"));
+		uart_puts_p(PSTR("5) 28800 bps\n"));
+		uart_puts_p(PSTR("6) 38400 bps\n"));
+		uart_puts_p(PSTR("7) 57600 bps\n"));
+		uart_puts_p(PSTR("8) 76800 bps\n"));
+		uart_puts_p(PSTR("9) 115200 bps\n"));
+		uart_puts_p(PSTR("0) Exit\n"));
 
 		//print prompt
 		uart_putc('>');
@@ -1679,6 +1689,15 @@ void baud_menu(void)
 		}
 		if(strcmp_P(command, PSTR("2")) == 0)
 		{
+			uart_puts_p(PSTR("\nGoing to 4800bps...\n"));
+
+			//Set baud rate to 4800
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_4800);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("3")) == 0)
+		{
 			uart_puts_p(PSTR("\nGoing to 9600bps...\n"));
 
 			//Set baud rate to 9600
@@ -1686,7 +1705,34 @@ void baud_menu(void)
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("3")) == 0)
+		if(strcmp_P(command, PSTR("4")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 14400bps...\n"));
+
+			//Set baud rate to 14400
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_14400);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("5")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 28800bps...\n"));
+
+			//Set baud rate to 28800
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_28800);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("6")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 38400bps...\n"));
+
+			//Set baud rate to 38400
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_38400);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("7")) == 0)
 		{
 			uart_puts_p(PSTR("\nGoing to 57600bps...\n"));
 
@@ -1695,7 +1741,16 @@ void baud_menu(void)
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("4")) == 0)
+		if(strcmp_P(command, PSTR("8")) == 0)
+		{
+			uart_puts_p(PSTR("\nGoing to 76800bps...\n"));
+
+			//Set baud rate to 76800
+			EEPROM_write(LOCATION_BAUD_SETTING, BAUD_76800);
+			blink_error(ERROR_NEW_BAUD);
+			return;
+		}
+		if(strcmp_P(command, PSTR("9")) == 0)
 		{
 			uart_puts_p(PSTR("\nGoing to 115200bps...\n"));
 
@@ -1704,7 +1759,7 @@ void baud_menu(void)
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
-		if(strcmp_P(command, PSTR("5")) == 0)
+		if(strcmp_P(command, PSTR("0")) == 0)
 		{
 			uart_puts_p(PSTR("\nExiting\n"));
 			//Do nothing, just exit
