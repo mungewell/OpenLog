@@ -425,11 +425,6 @@ struct command_arg
 #define ERROR_SD_INIT	3
 #define ERROR_NEW_BAUD	5
 
-#define LOCATION_BAUD_SETTING		0x01
-#define LOCATION_SYSTEM_SETTING		0x02
-#define LOCATION_FILE_NUMBER_LSB	0x03
-#define LOCATION_FILE_NUMBER_MSB	0x04
-
 #define BAUD_2400	0
 #define BAUD_9600	1
 #define BAUD_19200  2
@@ -447,6 +442,12 @@ struct fat_fs_struct* fs;
 struct partition_struct* partition;
 struct fat_dir_struct* dd;
 static struct command_arg cmd_arg[MAX_COUNT_COMMAND_LINE_ARGS];
+
+//EEPROM Variables
+uint8_t __attribute__((section(".eeprom"))) eepBaudRateSetting;
+uint8_t __attribute__((section(".eeprom"))) eepSystemSetting;
+uint8_t __attribute__((section(".eeprom"))) eepFileNumberLsb;
+uint8_t __attribute__((section(".eeprom"))) eepFileNumberMsb;
 
 #define BUFF_LEN 900
 volatile char input_buffer[BUFF_LEN];
@@ -469,11 +470,11 @@ int main(void)
 
 	//Determine the system mode we should be in
 	uint8_t system_mode;
-	system_mode = EEPROM_read(LOCATION_SYSTEM_SETTING);
+	system_mode = EEPROM_read((uint16_t)&eepSystemSetting);
 	if(system_mode > 5) 
 	{
 		system_mode = MODE_NEWLOG; //By default, unit will turn on and go to new file logging
-		EEPROM_write(LOCATION_SYSTEM_SETTING, MODE_NEWLOG);
+		EEPROM_write((uint16_t)&eepSystemSetting, MODE_NEWLOG);
 	}
 
 	//If we are in new log mode, find a new file name to write to
@@ -537,11 +538,11 @@ void ioinit(void)
 
 	//Read what the current UART speed is from EEPROM memory
 	UART_SPEED_T uart_speed;
-	uart_speed = EEPROM_read(LOCATION_BAUD_SETTING);
+	uart_speed = EEPROM_read((uint16_t)&eepBaudRateSetting);
 	if(uart_speed > 5) 
 	{
 		uart_speed = UART_SPEED_9600; //Reset UART to 9600 if there is no speed stored
-		EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_9600);
+		EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_9600);
 	}
 
     //Setup uart
@@ -596,8 +597,8 @@ void newlog(void)
 	uint16_t new_file_number;
 
 	//Combine two 8-bit EEPROM spots into one 16-bit number
-	lsb = EEPROM_read(LOCATION_FILE_NUMBER_LSB);
-	msb = EEPROM_read(LOCATION_FILE_NUMBER_MSB);
+	lsb = EEPROM_read((uint16_t)&eepFileNumberLsb);
+	msb = EEPROM_read((uint16_t)&eepFileNumberMsb);
 
 	new_file_number = msb;
 	new_file_number = new_file_number << 8;
@@ -608,8 +609,8 @@ void newlog(void)
 	if((lsb == 255) && (msb == 255))
 	{
 		new_file_number = 0; //By default, unit will start at file number zero
-		EEPROM_write(LOCATION_FILE_NUMBER_LSB, 0x00);
-		EEPROM_write(LOCATION_FILE_NUMBER_MSB, 0x00);
+		EEPROM_write((uint16_t)&eepFileNumberLsb, 0x00);
+		EEPROM_write((uint16_t)&eepFileNumberMsb, 0x00);
 	}
 
 	//The above code looks like it will forever loop if we ever create 65535 logs
@@ -657,10 +658,10 @@ void newlog(void)
 	lsb = (uint8_t)(new_file_number & 0x00FF);
 	msb = (uint8_t)((new_file_number & 0xFF00) >> 8);
 
-	EEPROM_write(LOCATION_FILE_NUMBER_LSB, lsb); // LSB
+	EEPROM_write((uint16_t)&eepFileNumberLsb, lsb); // LSB
 
-	if (EEPROM_read(LOCATION_FILE_NUMBER_MSB) != msb)
-		EEPROM_write(LOCATION_FILE_NUMBER_MSB, msb); // MSB
+	if (EEPROM_read((uint16_t)&eepFileNumberMsb) != msb)
+		EEPROM_write((uint16_t)&eepFileNumberMsb, msb); // MSB
 	
 #if DEBUG
 	uart_puts_p(PSTR("\nCreated new file: "));
@@ -1645,7 +1646,7 @@ void baud_menu(void)
 {
 	char buffer[5];
 
-	uint8_t uart_speed = EEPROM_read(LOCATION_BAUD_SETTING);
+	uint8_t uart_speed = EEPROM_read((uint16_t)&eepBaudRateSetting);
 	
 	while(1)
 	{
@@ -1686,7 +1687,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 2400bps...\n"));
 
 			//Set baud rate to 2400
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_2400);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_2400);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1695,7 +1696,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 4800bps...\n"));
 
 			//Set baud rate to 4800
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_4800);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_4800);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1704,7 +1705,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 9600bps...\n"));
 
 			//Set baud rate to 9600
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_9600);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_9600);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1713,7 +1714,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 19200bps...\n"));
 
 			//Set baud rate to 19200
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_19200);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_19200);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1722,7 +1723,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 38400bps...\n"));
 
 			//Set baud rate to 38400
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_38400);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_38400);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1731,7 +1732,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 57600bps...\n"));
 
 			//Set baud rate to 57600
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_57600);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_57600);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1740,7 +1741,7 @@ void baud_menu(void)
 			uart_puts_p(PSTR("\nGoing to 115200bps...\n"));
 
 			//Set baud rate to 115200
-			EEPROM_write(LOCATION_BAUD_SETTING, UART_SPEED_115200);
+			EEPROM_write((uint16_t)&eepBaudRateSetting, UART_SPEED_115200);
 			blink_error(ERROR_NEW_BAUD);
 			return;
 		}
@@ -1762,7 +1763,7 @@ void system_menu(void)
 {
 	char buffer[5];
 
-	uint8_t system_mode = EEPROM_read(LOCATION_SYSTEM_SETTING);
+	uint8_t system_mode = EEPROM_read((uint16_t)&eepSystemSetting);
 
 	while(1)
 	{
@@ -1794,30 +1795,30 @@ void system_menu(void)
 		if(strcmp_P(command, PSTR("1")) == 0)
 		{
 			uart_puts_p(PSTR("New file logging\n"));
-			EEPROM_write(LOCATION_SYSTEM_SETTING, MODE_NEWLOG);
+			EEPROM_write((uint16_t)&eepSystemSetting, MODE_NEWLOG);
 			return;
 		}
 		if(strcmp_P(command, PSTR("2")) == 0)
 		{
 			uart_puts_p(PSTR("Append file logging\n"));
-			EEPROM_write(LOCATION_SYSTEM_SETTING, MODE_SEQLOG);
+			EEPROM_write((uint16_t)&eepSystemSetting, MODE_SEQLOG);
 			return;
 		}
 		if(strcmp_P(command, PSTR("3")) == 0)
 		{
 			uart_puts_p(PSTR("Command prompt\n"));
-			EEPROM_write(LOCATION_SYSTEM_SETTING, MODE_COMMAND);
+			EEPROM_write((uint16_t)&eepSystemSetting, MODE_COMMAND);
 			return;
 		}
 		if(strcmp_P(command, PSTR("4")) == 0)
 		{
 			uart_puts_p(PSTR("New file number reset to zero\n"));
-			EEPROM_write(LOCATION_FILE_NUMBER_LSB, 0);
-			EEPROM_write(LOCATION_FILE_NUMBER_MSB, 0);
+			EEPROM_write((uint16_t)&eepFileNumberLsb, 0);
+			EEPROM_write((uint16_t)&eepFileNumberMsb, 0);
 
 			//65533 log testing
-			//EEPROM_write(LOCATION_FILE_NUMBER_LSB, 0xFD);
-			//EEPROM_write(LOCATION_FILE_NUMBER_MSB, 0xFF);
+			//EEPROM_write((uint16_t)&eepFileNumberLsb, 0xFD);
+			//EEPROM_write((uint16_t)&eepFileNumberMsb, 0xFF);
 
 			return;
 		}

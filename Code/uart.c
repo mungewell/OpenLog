@@ -67,12 +67,12 @@
 
 /* This array holds the UBRR values to cooresponding baudrates in the
    UART_SPEED_T enum. */
-const uint16_t uart_ubrr_table[UART_SPEED_MAX_ITEMS] = {832,416,207,104,52,34,16};
+const uint16_t PROGMEM uart_ubrr_table[UART_SPEED_MAX_ITEMS] = {832,416,207,104,52,34,16};
 
 void uart_init(UART_SPEED_T uart_speed)
 {
 	//Assume 16MHz
-	uint16_t new_ubrr = uart_ubrr_table[UART_SPEED_9600];  //Default is 9600bps
+	uint16_t new_ubrr = pgm_read_word(&uart_ubrr_table[UART_SPEED_9600]);  //Default is 9600bps
 
     /********************************************
     * Calculating baud rate - OpenLog is using  *
@@ -93,7 +93,7 @@ void uart_init(UART_SPEED_T uart_speed)
        If value is valid, assign new ubrr value, if not leave as default */
     if( uart_speed >= UART_SPEED_2400 && uart_speed <= UART_SPEED_115200 )
     {
-	    new_ubrr = uart_ubrr_table[uart_speed];
+	    new_ubrr = pgm_read_word(&uart_ubrr_table[uart_speed]);
 	}
 
     /* Doubling the UART transfer rate yields slightly more accurate UBRR 
