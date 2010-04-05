@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2006-2009 by Roland Riegel <feedback@roland-riegel.de>
  *
@@ -69,10 +68,16 @@ void uart_init(uint8_t uart_speed)
 {
 	//Assume 16MHz
 	uint16_t new_ubrr = 207; //Default is 9600bps
-	if(uart_speed == 0) new_ubrr = 832; //2400
-	if(uart_speed == 1) new_ubrr = 207; //9600
-	if(uart_speed == 2) new_ubrr = 34; //57600
-	if(uart_speed == 3) new_ubrr = 16; //115200
+	if(uart_speed == BAUD_2400) new_ubrr = 832;
+	if(uart_speed == BAUD_4800) new_ubrr = 416;
+	if(uart_speed == BAUD_9600) new_ubrr = 207;
+	if(uart_speed == BAUD_14400) new_ubrr = 138;
+	if(uart_speed == BAUD_19200) new_ubrr = 103;
+	if(uart_speed == BAUD_28800) new_ubrr = 68;
+	if(uart_speed == BAUD_38400) new_ubrr = 51;
+	if(uart_speed == BAUD_57600) new_ubrr = 34;
+	if(uart_speed == BAUD_76800) new_ubrr = 25;
+	if(uart_speed == BAUD_115200) new_ubrr = 16;
 
 	UCSR0A = (1<<U2X0); //Double the UART transfer rate
 	//Slightly more accurate UBRR calculation
