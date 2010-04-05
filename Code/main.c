@@ -8,7 +8,7 @@
 
 /*
     12-3-09
-    Copyright SparkFun Electronics© 2009
+    Copyright SparkFun Electronicsï¿½ 2009
     Nathan Seidle
     spark at sparkfun.com
     
@@ -430,11 +430,6 @@ struct command_arg
 #define LOCATION_FILE_NUMBER_LSB	0x03
 #define LOCATION_FILE_NUMBER_MSB	0x04
 
-#define BAUD_2400	0
-#define BAUD_9600	1
-#define BAUD_57600	2
-#define BAUD_115200	3
-
 #define MODE_NEWLOG	0
 #define MODE_SEQLOG 1
 #define MODE_COMMAND 2
@@ -519,7 +514,7 @@ void ioinit(void)
 		if( (PIND & (1<<0)) == 0)
 		{
 			//If the pin is still low, then reset UART to 9600bps
-			EEPROM_write(0x01, 1);
+			EEPROM_write(0x01, BAUD_9600);
 
 			//Now sit in forever loop indicating system is now at 9600bps
 			sbi(PORTD, STAT1); 
@@ -536,7 +531,7 @@ void ioinit(void)
 	//Read what the current UART speed is from EEPROM memory
 	uint8_t uart_speed;
 	uart_speed = EEPROM_read(LOCATION_BAUD_SETTING);
-	if(uart_speed > 5) 
+	if(uart_speed > BAUD_MAX) 
 	{
 		uart_speed = BAUD_9600; //Reset UART to 9600 if there is no speed stored
 		EEPROM_write(LOCATION_BAUD_SETTING, BAUD_9600);
