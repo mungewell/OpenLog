@@ -377,6 +377,7 @@ void ioinit(void);
 void print_menu(void);
 void init_media(void);
 void baud_menu(void);
+void serial_menu(void);
 void system_menu(void);
 uint8_t read_buffer(char* buffer, uint8_t buffer_length);
 uint8_t append_file(char* file_name);
@@ -448,6 +449,7 @@ uint8_t __attribute__((section(".eeprom"))) eepBaudRateSetting;
 uint8_t __attribute__((section(".eeprom"))) eepSystemSetting;
 uint8_t __attribute__((section(".eeprom"))) eepFileNumberLsb;
 uint8_t __attribute__((section(".eeprom"))) eepFileNumberMsb;
+uint8_t __attribute__((section(".eeprom"))) eepStopBitSetting;
 
 #define BUFF_LEN 900
 volatile char input_buffer[BUFF_LEN];
@@ -493,6 +495,8 @@ int main(void)
 
 void ioinit(void)
 {
+	uint8_t stop_bits;
+	
     //Init Timer0 for delay_us
     //TCCR0B = (1<<CS00); //Set Prescaler to clk/1 (assume we are running at internal 1MHz). CS00=1 
     TCCR0B = (1<<CS01); //Set Prescaler to clk/8 : 1click = 1us(assume we are running at internal 8MHz). CS01=1 
@@ -546,7 +550,17 @@ void ioinit(void)
 	}
 
     //Setup uart
-    uart_init(uart_speed);
+	stop_bits = EEPROM_read((uint16_t)&eepStopBitSetting);
+	
+	// If value is uninitialized, set it to a default of 1
+	if(stop_bits == 0xFF)
+	{
+		stop_bits = 1;
+		EEPROM_write((uint16_t)&eepStopBitSetting, stop_bits);
+	}
+	
+    uart_init(uart_speed, 8, "None", stop_bits );
+
 #if DEBUG
 	uart_puts_p(PSTR("UART Init\n"));
 #else
@@ -785,6 +799,11 @@ void command_shell(void)
 		{
 			//Go into baud select menu
 			baud_menu();
+		}
+		else if(strcmp_P(command_arg, PSTR("serial")) == 0)
+		{
+			// Go into serial parameter select menu
+			serial_menu();
 		}
 		else if(strcmp_P(command_arg, PSTR("set")) == 0)
 		{
@@ -1639,6 +1658,7 @@ void print_menu(void)
 	uart_puts_p(PSTR("\nMenus:\n"));
 	uart_puts_p(PSTR("set\t\t\t: Menu to configure system boot mode\n"));
 	uart_puts_p(PSTR("baud\t\t\t: Menu to configure baud rate\n"));
+	uart_puts_p(PSTR("serial\t\t\t: Menu to set bit length, parity and stop bits (right now, just stop bits).\n"));
 }
 
 //Configure what baud rate to communicate at
@@ -1751,6 +1771,70 @@ void baud_menu(void)
 			//Do nothing, just exit
 			return;
 		}
+	}
+}
+
+void serial_menu(void)
+{
+	// Read current setting
+	uint8_t current_setting = EEPROM_read( (uint16_t)&eepStopBitSetting );
+	char buffer[5];
+
+	// Set to initial value of 1 if uninitialized
+	if( current_setting == 0xFF )
+		current_setting = 1;
+	
+	while(1)
+	{
+		uart_puts_p(PSTR("\n\nCurrent Setting: "));
+		if(current_setting == 2) uart_puts_p(PSTR("2"));
+		else uart_puts_p(PSTR("1"));
+		uart_puts_p(PSTR(" stop bit(s).\n"));
+		
+		uart_puts_p(PSTR("1) Change to "));
+		if(current_setting == 1) uart_puts_p(PSTR("2"));
+		else uart_puts_p(PSTR("1"));
+		uart_puts_p(PSTR(" stop bit(s).\n"));
+		
+		uart_puts_p(PSTR("2) Exit\n"));
+		
+		uart_puts_p(PSTR("\nNOTE: CONNECTION WILL NEED TO BE RESTARTED IF CHANGED!\n"));
+		
+		//print prompt
+		uart_putc('>');
+
+		//read command
+		char* command = buffer;
+
+		if(read_line(command, sizeof(buffer)) < 1)
+			continue;
+
+		//execute command
+		if(strcmp_P(command, PSTR("1")) == 0)
+		{
+			uart_puts_p(PSTR("\nChanging Frame Format. Please restart connection... \n"));
+			
+			if(current_setting == 2)
+			{
+				current_setting = 1;
+				UCSR0C |= (0 << USBS0);
+			}
+			else if(current_setting == 1)
+			{
+				current_setting = 2;
+				UCSR0C |= (1 << USBS0);
+			}
+			EEPROM_write((uint16_t)&eepStopBitSetting, current_setting);	
+			
+			return;
+		}
+		if(strcmp_P(command, PSTR("2")) == 0)
+		{
+			uart_puts_p(PSTR("\nExiting\n"));
+			//Do nothing, just exit
+			return;
+		}
+		
 	}
 }
 

@@ -69,7 +69,7 @@
    UART_SPEED_T enum. */
 const uint16_t PROGMEM uart_ubrr_table[UART_SPEED_MAX_ITEMS] = {832,416,207,104,52,34,16};
 
-void uart_init(UART_SPEED_T uart_speed)
+void uart_init(UART_SPEED_T uart_speed, uint8_t word_length, char *parity, uint8_t stop_bits)
 {
 	//Assume 16MHz
 	uint16_t new_ubrr = pgm_read_word(&uart_ubrr_table[UART_SPEED_9600]);  //Default is 9600bps
@@ -104,7 +104,15 @@ void uart_init(UART_SPEED_T uart_speed)
     UBRR0L = new_ubrr;
     UBRR0H = new_ubrr >> 8;
     
-    /* set frame format: 8 bit, no parity, 1 bit */
+	if(stop_bits == 2)
+	{
+		UCSR0C |= (1 << USBS0);
+	}
+	else
+		// Default to 1 if invalid choice
+		UCSR0C |= (0 << USBS0);
+		
+	/* set frame format: 8 bit, no parity, 1 bit */
     //UCSRC = UCSRC_SELECT | (1 << UCSZ1) | (1 << UCSZ0);
     /* enable serial receiver and transmitter */
 
