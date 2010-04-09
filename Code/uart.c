@@ -62,8 +62,9 @@
 #define BAUD 115200UL
 //#define BAUD 19200UL
 #define UBRRVAL (F_CPU/(BAUD*16)-1)
-//#define USE_SLEEP 1
-#define USE_SLEEP 0
+
+//#define USE_SLEEP 0
+#define USE_SLEEP 1
 
 /* This array holds the UBRR values to cooresponding baudrates in the
    UART_SPEED_T enum. */
@@ -120,8 +121,7 @@ void uart_init(UART_SPEED_T uart_speed, uint8_t word_length, char *parity, uint8
 #if !USE_SLEEP
     UCSRB = (1 << RXEN) | (1 << TXEN);
 #else
-    //UCSRB = (1 << RXEN) | (1 << TXEN) | (1 << RXCIE);
-    UCSRB = (1 << RXEN) | (1 << TXEN);
+    UCSRB = (1 << RXEN) | (1 << TXEN) | (1 << RXCIE);
 #endif
 
 }
@@ -225,22 +225,39 @@ uint8_t uart_getc()
 {
     /* wait until receive buffer is full */
 #if USE_SLEEP
-    uint8_t sreg = SREG;
+
+	//During append file, we are disabling the RX interrupt, so we need to bring it back
+	UCSR0B |= (1<<RXCIE0); //Enable receive interrupts
+
     sei();
+	//#define STAT1	5
+	//PORTD &= ~(1<<STAT1); //Turn off LED to save more power - if we turn off the LED before the ISR, the LED never comes on
+	//I'd rather have the LED blink
+	sleep_mode();
+	cli();
+	
+	//Now that we've woken up, we assume that the UART ISR has done its job and loaded UDR into the buffer
+	//We need to look at the last used spot in the buffer which is read_spot - 1
+	char b;
+	if(read_spot == 0)
+		b = input_buffer[sizeof(input_buffer) - 1];
+	else
+		b = input_buffer[read_spot - 1];
 
-    while(!(UCSRA & (1 << RXC)))
-        sleep_mode();
+    if(b == '\r')
+        b = '\n';
 
-    SREG = sreg;
+	return b;
 #else
     while(!(UCSRA & (1 << RXC)));
-#endif
 
     uint8_t b = UDR;
     if(b == '\r')
         b = '\n';
 
     return b;
+#endif
+
 }
 
 //EMPTY_INTERRUPT(USART_RXC_vect)
