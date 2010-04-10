@@ -66,26 +66,58 @@
 //#define USE_SLEEP 0
 #define USE_SLEEP 1
 
-void uart_init(uint8_t uart_speed)
+/* This array holds the UBRR values to cooresponding baudrates in the
+   UART_SPEED_T enum. */
+const uint16_t PROGMEM uart_ubrr_table[UART_SPEED_MAX_ITEMS] = {832,416,207,104,52,34,16};
+
+void uart_init(UART_SPEED_T uart_speed, uint8_t word_length, char *parity, uint8_t stop_bits)
 {
 	//Assume 16MHz
-	uint16_t new_ubrr = 207; //Default is 9600bps
-	if(uart_speed == 0) new_ubrr = 832; //2400
-	if(uart_speed == 1) new_ubrr = 207; //9600
-	if(uart_speed == 2) new_ubrr = 34; //57600
-	if(uart_speed == 3) new_ubrr = 16; //115200
-	//New speeds added 4-7-2010
-	//1200bps is so rare, and is not on the ATmega328 datasheet that I skipped it
-	//38400bps is also rare, and ubrr of 51 oddly causes errors at 16MHz, so I skipped it as well
-	if(uart_speed == 4) new_ubrr = 416; //4800
-	if(uart_speed == 5) new_ubrr = 103; //19200
-	//if(uart_speed == 6) new_ubrr = 51; //38400
+	uint16_t new_ubrr = pgm_read_word(&uart_ubrr_table[UART_SPEED_9600]);  //Default is 9600bps
 
-	UCSR0A = (1<<U2X0); //Double the UART transfer rate
-	//Slightly more accurate UBRR calculation
-	UBRR0L = new_ubrr;
-	UBRR0H = new_ubrr >> 8;
+    /********************************************
+    * Calculating baud rate - OpenLog is using  *
+    * the Asynchronous Double Speed Mode for    *
+    * the USART. Therefore, the calculation for *
+    * the UBRR (baud rate) is:                  *
+    *      (Fosc/8*BAUD_RATE) - 1               *
+    * Example 9600                              *
+    *       (16MHz/8*9600) - 1 = 208.33333 - 1  *
+    *                          = ~207           *
+    * To add a new baud rate, calculate the     *
+    * ubrr value. Then, add the baud rate to    *
+    * the speed enum and the value to the table *
+    * both located in uart.h                    *
+    *********************************************/
+    
+    /* Bound check value before assigning.
+       If value is valid, assign new ubrr value, if not leave as default */
+    if( uart_speed >= UART_SPEED_2400 && uart_speed <= UART_SPEED_115200 )
+    {
+	    new_ubrr = pgm_read_word(&uart_ubrr_table[uart_speed]);
+	}
 
+    /* Doubling the UART transfer rate yields slightly more accurate UBRR 
+       calculation */
+    UCSR0A = (1<<U2X0);
+    
+    /* set baud rate register*/
+    UBRR0L = new_ubrr;
+    UBRR0H = new_ubrr >> 8;
+    
+	if(stop_bits == 2)
+	{
+		UCSR0C |= (1 << USBS0);
+	}
+	else
+		// Default to 1 if invalid choice
+		UCSR0C |= (0 << USBS0);
+		
+	/* set frame format: 8 bit, no parity, 1 bit */
+    //UCSRC = UCSRC_SELECT | (1 << UCSZ1) | (1 << UCSZ0);
+    /* enable serial receiver and transmitter */
+
+	
 #if !USE_SLEEP
     UCSRB = (1 << RXEN) | (1 << TXEN);
 #else

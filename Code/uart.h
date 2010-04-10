@@ -21,8 +21,19 @@ extern volatile uint16_t read_spot;
 extern "C"
 {
 #endif
+typedef enum
+{
+    UART_SPEED_2400,
+    UART_SPEED_4800,
+    UART_SPEED_9600,
+    UART_SPEED_19200,
+    UART_SPEED_38400,
+    UART_SPEED_57600,
+    UART_SPEED_115200,
+    UART_SPEED_MAX_ITEMS
+} UART_SPEED_T;
 
-void uart_init(uint8_t uart_speed);
+void uart_init(UART_SPEED_T uart_speed, uint8_t word_length, char *parity, uint8_t stop_bits);
 
 void uart_putc(uint8_t c);
 
@@ -37,6 +48,7 @@ void uart_puts(const char* str);
 void uart_puts_p(PGM_P str);
 
 uint8_t uart_getc(void);
+
 
 #ifdef __cplusplus
 }

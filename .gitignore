@@ -1,0 +1,12 @@
+*.o.d
+*.o
+*.lst
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+*.sym
+doc
+*.pnproj
+*.pnps
