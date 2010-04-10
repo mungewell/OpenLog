@@ -393,6 +393,7 @@ static uint8_t find_file_in_dir(struct fat_fs_struct* fs, struct fat_dir_struct*
 static struct fat_file_struct* open_file_in_dir(struct fat_fs_struct* fs, struct fat_dir_struct* dd, const char* name); 
 static uint8_t print_disk_info(const struct fat_fs_struct* fs);
 
+int check_emergency_reset(void);
 void ioinit(void);
 void print_menu(void);
 void init_media(void);
@@ -505,6 +506,37 @@ int main(void)
     return 0;
 }
 
+int check_emergency_reset(void)
+{
+	//Check to see if we need an emergency UART reset
+
+	DDRD |= (1<<0); //Turn the RX pin into an input
+	PORTD |= (1<<0); //Push a 1 onto RX pin to enable internal pull-up
+
+	//Check pin 
+	if( (PIND & (1<<0)) == 1) return 0;
+
+	//Wait 2 seconds, blinking LEDs while we wait
+	sbi(PORTC, STAT2); //Set the STAT2 LED
+	for(uint8_t i = 0 ; i < 40 ; i++)
+	{
+		delay_ms(25);
+		PORTD ^= (1<<STAT1); //Blink the stat LEDs
+
+		//Check pin again
+		if( (PIND & (1<<0)) == 1) return 0;
+
+		delay_ms(25);
+		PORTB ^= (1<<STAT2); //Blink the stat LEDs
+
+		//Check pin again
+		if( (PIND & (1<<0)) == 1) return 0;
+	}
+
+	// Stayed low the whole time
+	return 1;
+}
+
 void ioinit(void)
 {
     //Init Timer0 for delay_us
@@ -526,25 +558,10 @@ void ioinit(void)
     DDRB |= (1<<STAT2); //PORTC (STAT2 on PB5)
 
 	//Check to see if we need an emergency UART reset
-	DDRD |= (1<<0); //Turn the RX pin into an input
-	PORTD |= (1<<0); //Push a 1 onto RX pin to enable internal pull-up
-	if( (PIND & (1<<0)) == 0) //Now check the RX pin. If it's being held low
-	{
-		//Wait 2 seconds, blinking LEDs while we wait
-		sbi(PORTC, STAT2); //Set the STAT2 LED
-		for(uint8_t i = 0 ; i < 40 ; i++)
-		{
-			delay_ms(25);
-			PORTD ^= (1<<STAT1); //Blink the stat LEDs
-			delay_ms(25);
-			PORTB ^= (1<<STAT2); //Blink the stat LEDs
-		}
-		
-		//Check pin again
-		if( (PIND & (1<<0)) == 0)
+	if (check_emergency_reset() ) {
 		{
 			//If the pin is still low, then reset UART to 9600bps
-			EEPROM_write(0x01, 1);
+			EEPROM_write(0x01, BAUD_9600);
 
 			//Now sit in forever loop indicating system is now at 9600bps
 			sbi(PORTD, STAT1); 
