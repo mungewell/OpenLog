@@ -472,11 +472,6 @@ uint8_t __attribute__((section(".eeprom"))) eepFileNumberLsb;
 uint8_t __attribute__((section(".eeprom"))) eepFileNumberMsb;
 uint8_t __attribute__((section(".eeprom"))) eepStopBitSetting;
 
-#define BUFF_LEN 900
-volatile char input_buffer[BUFF_LEN];
-char general_buffer[25];
-uint16_t read_spot, checked_spot;
-
 //Circular buffer UART RX interrupt
 //Is only used during append
 ISR(USART_RX_vect)
